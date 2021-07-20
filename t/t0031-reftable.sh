@@ -288,4 +288,10 @@ test_expect_success 'FETCH_HEAD' '
 	test_cmp expect actual
 '
 
+test_expect_success 'dump reftable' '
+	initialize &&
+	hash_id=$(git config extensions.objectformat) &&
+	test-tool dump-reftable $(test "${hash_id}" = "sha256" && echo "-6") -s .git/reftable
+'
+
 test_done
