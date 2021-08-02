@@ -16,7 +16,9 @@ https://developers.google.com/open-source/licenses/bsd
 #include <zlib.h>
 
 #ifdef NO_UNCOMPRESS2
-/* This is uncompress2, which is only available in zlib as of 2017.
+/*
+ * This is uncompress2, which is only available in zlib >= 1.2.9
+ * (released as of early 2017)
  */
 int uncompress2(Bytef *dest, uLongf *destLen, const Bytef *source,
 		uLong *sourceLen);
