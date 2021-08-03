@@ -397,24 +397,13 @@ static void free_message(struct commit *commit, struct commit_message *msg)
 	unuse_commit_buffer(commit, msg->message);
 }
 
-static void print_advice(struct repository *r, int show_hint,
-			 struct replay_opts *opts)
+static void print_advice(struct replay_opts *opts, int show_hint)
 {
 	char *msg = getenv("GIT_CHERRY_PICK_HELP");
 
 	if (msg) {
-		fprintf(stderr, "%s\n", msg);
-		/*
-		 * A conflict has occurred but the porcelain
-		 * (typically rebase --interactive) wants to take care
-		 * of the commit itself so remove CHERRY_PICK_HEAD
-		 */
-		refs_delete_ref(get_main_ref_store(r), "", "CHERRY_PICK_HEAD",
-				NULL, 0);
-		return;
-	}
-
-	if (show_hint) {
+		advise("%s\n", msg);
+	} else if (show_hint) {
 		if (opts->no_commit)
 			advise(_("after resolving the conflicts, mark the corrected paths\n"
 				 "with 'git add <paths>' or 'git rm <paths>'"));
@@ -2265,7 +2254,16 @@ static int do_pick_commit(struct repository *r,
 		      ? _("could not revert %s... %s")
 		      : _("could not apply %s... %s"),
 		      short_commit_name(commit), msg.subject);
-		print_advice(r, res == 1, opts);
+		print_advice(opts, res == 1);
+		if (opts->delete_cherry_pick_head) {
+			/*
+			 * A conflict has occurred but the porcelain
+			 * (typically rebase --interactive) wants to take care
+			 * of the commit itself so remove CHERRY_PICK_HEAD
+			 */
+			refs_delete_ref(get_main_ref_store(r), "", "CHERRY_PICK_HEAD",
+					NULL, 0);
+		}
 		repo_rerere(r, opts->allow_rerere_auto);
 		goto leave;
 	}
