@@ -46,9 +46,8 @@ test_expect_success 'create some new worktrees' '
 test_expect_success 'merge z into y fails and sets NOTES_MERGE_REF' '
 	git config core.notesRef refs/notes/y &&
 	test_must_fail git notes merge z &&
-	echo "refs/notes/y" >expect &&
-	git symbolic-ref NOTES_MERGE_REF >actual &&
-	test_cmp expect actual
+	echo "ref: refs/notes/y" >expect &&
+	test_cmp expect .git/NOTES_MERGE_REF
 '
 
 test_expect_success 'merge z into y while mid-merge in another workdir fails' '
@@ -58,7 +57,7 @@ test_expect_success 'merge z into y while mid-merge in another workdir fails' '
 		test_must_fail git notes merge z 2>err &&
 		test_i18ngrep "a notes merge into refs/notes/y is already in-progress at" err
 	) &&
-	test_must_fail git -C worktree symbolic-ref NOTES_MERGE_REF
+	test_path_is_missing .git/worktrees/worktree/NOTES_MERGE_REF
 '
 
 test_expect_success 'merge z into x while mid-merge on y succeeds' '
@@ -69,9 +68,8 @@ test_expect_success 'merge z into x while mid-merge on y succeeds' '
 		test_i18ngrep "Automatic notes merge failed" out &&
 		grep -v "A notes merge into refs/notes/x is already in-progress in" out
 	) &&
-	echo "refs/notes/x" >expect &&
-	git -C worktree2 symbolic-ref NOTES_MERGE_REF >actual &&
-	test_cmp expect actual
+	echo "ref: refs/notes/x" >expect &&
+	test_cmp expect .git/worktrees/worktree2/NOTES_MERGE_REF
 '
 
 test_done
