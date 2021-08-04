@@ -9,12 +9,8 @@ export GIT_TEST_DEFAULT_INITIAL_BRANCH_NAME
 
 RUN="test-tool ref-store main"
 
-
-test_expect_success 'setup' '
-	test_commit one
-'
-
-test_expect_success REFFILES 'pack_refs(PACK_REFS_ALL | PACK_REFS_PRUNE)' '
+test_expect_success 'pack_refs(PACK_REFS_ALL | PACK_REFS_PRUNE)' '
+	test_commit one &&
 	N=`find .git/refs -type f | wc -l` &&
 	test "$N" != 0 &&
 	$RUN pack-refs 3 &&
@@ -102,12 +98,12 @@ test_expect_success 'reflog_exists(HEAD)' '
 
 test_expect_success 'delete_reflog(HEAD)' '
 	$RUN delete-reflog HEAD &&
-	test_must_fail git reflog exists HEAD
+	! test -f .git/logs/HEAD
 '
 
 test_expect_success 'create-reflog(HEAD)' '
 	$RUN create-reflog HEAD 1 &&
-	git reflog exists HEAD
+	test -f .git/logs/HEAD
 '
 
 test_expect_success 'delete_ref(refs/heads/foo)' '

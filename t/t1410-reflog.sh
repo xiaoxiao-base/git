@@ -374,9 +374,7 @@ test_expect_failure 'reflog with non-commit entries displays all entries' '
 	test_line_count = 3 actual
 '
 
-# This test takes a lock on an individual ref; this is not supported in
-# reftable.
-test_expect_success REFFILES 'reflog expire operates on symref not referrent' '
+test_expect_success 'reflog expire operates on symref not referrent' '
 	git branch --create-reflog the_symref &&
 	git branch --create-reflog referrent &&
 	git update-ref referrent HEAD &&

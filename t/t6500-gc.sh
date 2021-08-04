@@ -241,7 +241,7 @@ test_expect_success 'background auto gc respects lock for all operations' '
 
 	# create a ref whose loose presence we can use to detect a pack-refs run
 	git update-ref refs/heads/should-be-loose HEAD &&
-	(ls -1 .git/refs/heads .git/reftable >expect || true) &&
+	test_path_is_file .git/refs/heads/should-be-loose &&
 
 	# now fake a concurrent gc that holds the lock; we can use our
 	# shell pid so that it looks valid.
@@ -258,8 +258,7 @@ test_expect_success 'background auto gc respects lock for all operations' '
 
 	# our gc should exit zero without doing anything
 	run_and_wait_for_auto_gc &&
-	(ls -1 .git/refs/heads .git/reftable >actual || true) &&
-	test_cmp expect actual
+	test_path_is_file .git/refs/heads/should-be-loose
 '
 
 # DO NOT leave a detached auto gc process running near the end of the

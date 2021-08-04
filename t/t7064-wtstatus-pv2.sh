@@ -373,7 +373,10 @@ test_expect_success 'verify upstream fields in branch header' '
 
 		## Test upstream-gone case. Fake this by pointing
 		## origin/initial-branch at a non-existing commit.
-		git update-ref -d refs/remotes/origin/initial-branch &&
+		OLD=$(git rev-parse origin/initial-branch) &&
+		NEW=$ZERO_OID &&
+		mv .git/packed-refs .git/old-packed-refs &&
+		sed "s/$OLD/$NEW/g" <.git/old-packed-refs >.git/packed-refs &&
 
 		HUF=$(git rev-parse HEAD) &&
 
