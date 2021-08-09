@@ -40,6 +40,54 @@ write_command () {
 	fi
 }
 
+# Write a complete fetch command to stdout, suitable for use with `test-tool
+# pkt-line`. "want-ref", "want", and "have" values can be given in this order,
+# with sections separated by "--".
+#
+# Examples:
+#
+# write_fetch_command refs/heads/main
+#
+# write_fetch_command \
+#	refs/heads/main \
+#	-- \
+#	-- \
+#	$(git rev-parse x)
+#
+# write_fetch_command \
+#	--
+#	$(git rev-parse a) \
+#	--
+#	$(git rev-parse b)
+write_fetch_command () {
+	write_command fetch &&
+	echo "0001" &&
+	echo "no-progress" || return
+    while :
+	do
+		case $# in 0) break ;; esac &&
+		case "$1" in --) shift; break ;; esac &&
+		echo "want-ref $1" &&
+		shift || return
+	done &&
+    while :
+	do
+		case $# in 0) break ;; esac &&
+		case "$1" in --) shift; break ;; esac &&
+		echo "want $1" &&
+		shift || return
+	done &&
+    while :
+	do
+		case $# in 0) break ;; esac &&
+		case "$1" in --) shift; break ;; esac &&
+		echo "have $1" &&
+		shift || return
+	done &&
+	echo "done" &&
+	echo "0000"
+}
+
 # c(o/foo) d(o/bar)
 #        \ /
 #         b   e(baz)  f(main)
@@ -97,15 +145,13 @@ test_expect_success 'basic want-ref' '
 	EOF
 	git rev-parse f >expected_commits &&
 
-	oid=$(git rev-parse a) &&
 	test-tool pkt-line pack >in <<-EOF &&
-	$(write_command fetch)
-	0001
-	no-progress
-	want-ref refs/heads/main
-	have $oid
-	done
-	0000
+	$(write_fetch_command \
+		refs/heads/main \
+		-- \
+		-- \
+		$(git rev-parse a) \
+	)
 	EOF
 
 	test-tool serve-v2 --stateless-rpc >out <in &&
@@ -121,16 +167,14 @@ test_expect_success 'multiple want-ref lines' '
 	EOF
 	git rev-parse c d >expected_commits &&
 
-	oid=$(git rev-parse b) &&
 	test-tool pkt-line pack >in <<-EOF &&
-	$(write_command fetch)
-	0001
-	no-progress
-	want-ref refs/heads/o/foo
-	want-ref refs/heads/o/bar
-	have $oid
-	done
-	0000
+	$(write_fetch_command \
+		refs/heads/o/foo \
+		refs/heads/o/bar \
+		-- \
+		-- \
+		$(git rev-parse b) \
+	)
 	EOF
 
 	test-tool serve-v2 --stateless-rpc >out <in &&
@@ -145,14 +189,13 @@ test_expect_success 'mix want and want-ref' '
 	git rev-parse e f >expected_commits &&
 
 	test-tool pkt-line pack >in <<-EOF &&
-	$(write_command fetch)
-	0001
-	no-progress
-	want-ref refs/heads/main
-	want $(git rev-parse e)
-	have $(git rev-parse a)
-	done
-	0000
+	$(write_fetch_command \
+		refs/heads/main \
+		-- \
+		$(git rev-parse e) \
+		-- \
+		$(git rev-parse a) \
+	)
 	EOF
 
 	test-tool serve-v2 --stateless-rpc >out <in &&
@@ -166,15 +209,13 @@ test_expect_success 'want-ref with ref we already have commit for' '
 	EOF
 	>expected_commits &&
 
-	oid=$(git rev-parse c) &&
 	test-tool pkt-line pack >in <<-EOF &&
-	$(write_command fetch)
-	0001
-	no-progress
-	want-ref refs/heads/o/foo
-	have $oid
-	done
-	0000
+	$(write_fetch_command \
+		refs/heads/o/foo \
+		-- \
+		-- \
+		$(git rev-parse c) \
+	)
 	EOF
 
 	test-tool serve-v2 --stateless-rpc >out <in &&
