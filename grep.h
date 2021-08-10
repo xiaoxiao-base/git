@@ -187,6 +187,7 @@ struct grep_source {
 		GREP_SOURCE_BUF,
 	} type;
 	void *identifier;
+	struct repository *repo; /* if GREP_SOURCE_OID */
 
 	char *buf;
 	unsigned long size;
@@ -198,7 +199,8 @@ struct grep_source {
 void grep_source_init_file(struct grep_source *gs, const char *name,
 			   const char *path);
 void grep_source_init_oid(struct grep_source *gs, const char *name,
-			  const char *path, const struct object_id *oid);
+			  const char *path, const struct object_id *oid,
+			  struct repository *repo);
 void grep_source_init_buf(struct grep_source *gs);
 void grep_source_clear_data(struct grep_source *gs);
 void grep_source_clear(struct grep_source *gs);
